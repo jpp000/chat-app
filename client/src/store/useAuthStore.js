@@ -3,6 +3,7 @@ import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 import { ENV } from "../constants/env";
+import { SOCKET_EVENTS } from "../../../common/constants/events";
 
 const baseUrl = ENV.BASE_URL;
 
@@ -119,7 +120,7 @@ export const useAuthStore = create((set, get) => ({
 
     set({ socket });
 
-    socket.on("users:online", (usersIds) => {
+    socket.on(SOCKET_EVENTS.ONLINE_USERS, (usersIds) => {
       set({ onlineUsers: usersIds });
     });
   },

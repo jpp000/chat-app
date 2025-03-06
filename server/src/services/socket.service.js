@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import { User } from "../models/user.model.js";
 import { AuthUtils } from "../utils/auth.utils.js";
 import { userManager } from "../config/socket-user-manager.js";
+import { SOCKET_EVENTS } from "../../../common/constants/events.js";
 
 export class SocketService {
   init(httpServer) {
@@ -33,6 +34,8 @@ export class SocketService {
       socket.user = user.toJSON();
       socket.socketId = socket.id;
 
+      socket.join(user._id.toString());
+
       next();
     } catch (error) {
       next(new Error("Authentication error"));
@@ -40,21 +43,17 @@ export class SocketService {
   }
 
   setup() {
-    this.io.use(this.middleware).on("connection", (socket) => {
-      console.log(`Socket connected: ${socket.socketId}`);
-
+    this.io.use(this.middleware).on(SOCKET_EVENTS.CONNECTION, (socket) => {
       const userId = socket.user._id;
 
       this.userManager.connectUser(userId, socket.socketId);
 
-      this.io.emit("users:online", this.userManager.getConnectedUsers());
+      this.io.emit(SOCKET_EVENTS.ONLINE_USERS, this.userManager.getConnectedUsers());
 
-      socket.on("disconnect", () => {
-        console.log("A user disconnected", socket.id);
-
+      socket.on(SOCKET_EVENTS.DISCONNECT, () => {
         this.userManager.disconnectUser(userId);
 
-        this.io.emit("users:online", this.userManager.getConnectedUsers());
+        this.io.emit(SOCKET_EVENTS.ONLINE_USERS, this.userManager.getConnectedUsers());
       });
     });
 
