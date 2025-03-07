@@ -1,10 +1,11 @@
+import { SOCKET_EVENTS } from "../../../common/constants/events.js";
 import { cloudinary } from "../config/cloudinary.js";
 import { Message } from "../models/message.model.js";
 import { User } from "../models/user.model.js";
 import { ChatSocketService } from "./chat-socket.service.js";
 
 export class MessagesService {
-  constructor() {    
+  constructor() {
     this.chatSocketService = new ChatSocketService();
   }
 
@@ -41,11 +42,34 @@ export class MessagesService {
     await newMessage.save();
 
     this.chatSocketService.notify({
-      event: "message:create",
+      event: SOCKET_EVENTS.MESSAGE_CREATE,
       data: newMessage.toJSON(),
       userId: recipientId,
     });
 
     return newMessage.toJSON();
+  }
+
+  async deleteMessage({ messageId, userId }) {
+    console.log(messageId, userId);
+
+    const message = await Message.findOneAndDelete({
+      _id: messageId,
+      senderId: userId,
+    });
+
+    console.log("message", message);
+
+    if (!message) {
+      throw new Error("Message not found");
+    }
+
+    this.chatSocketService.notify({
+      event: SOCKET_EVENTS.MESSAGE_DELETED,
+      data: message._id.toHexString(),
+      userId: message.receiverId.toHexString(),
+    });
+
+    return message;
   }
 }

@@ -53,6 +53,16 @@ export const useChatStore = create((set, get) => ({
         messages: [...get().messages, messageData],
       });
     });
+
+    socket.on(SOCKET_EVENTS.MESSAGE_DELETED, (messageId) => {
+      const { messages } = get();
+
+      const updatedMessages = messages.filter(
+        (message) => message._id !== messageId
+      );
+
+      set({ messages: updatedMessages });
+    })
   },
 
   unsubscribeFromMessages: () => {
@@ -85,5 +95,21 @@ export const useChatStore = create((set, get) => ({
 
   setSelectedUser: (selectedUser) => {
     set({ selectedUser });
+  },
+
+  deleteMessage: async (messageId) => {
+    const { messages } = get();
+
+    try {      
+      await axiosInstance.delete(`/messages/${messageId}`);
+
+      const updatedMessages = messages.filter(
+        (message) => message._id !== messageId
+      );
+
+      set({ messages: updatedMessages });
+    } catch (error) {
+      toast.error(error.response.data.message);
+    }
   },
 }));

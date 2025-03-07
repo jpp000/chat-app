@@ -9,6 +9,10 @@ export class ChatSocketService {
       return;
     }
 
+    if (!this.io) {
+      this.io = global.socketInstance;
+    }
+
     this.io.to(userId).emit(event, data);
   }
 }

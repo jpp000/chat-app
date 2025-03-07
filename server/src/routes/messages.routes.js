@@ -19,6 +19,11 @@ export class MessagesRoutes {
       AuthMiddleware.isAutorized,
       this.messagesController.sendMessage
     );
+    this.router.delete(
+      "/:id",
+      AuthMiddleware.isAutorized,
+      this.messagesController.deleteMessage
+    );
 
     return this.router;
   }

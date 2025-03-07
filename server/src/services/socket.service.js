@@ -3,6 +3,7 @@ import { User } from "../models/user.model.js";
 import { AuthUtils } from "../utils/auth.utils.js";
 import { userManager } from "../config/socket-user-manager.js";
 import { SOCKET_EVENTS } from "../../../common/constants/events.js";
+import { MessagesService } from "./messages.service.js";
 
 export class SocketService {
   init(httpServer) {
@@ -13,6 +14,7 @@ export class SocketService {
       },
     });
     this.userManager = userManager;
+    this.messageService = new MessagesService()
   }
 
   async middleware(socket, next) {
@@ -55,6 +57,10 @@ export class SocketService {
 
         this.io.emit(SOCKET_EVENTS.ONLINE_USERS, this.userManager.getConnectedUsers());
       });
+
+      socket.on(SOCKET_EVENTS.MESSAGE_DELETE, async (messageId) => {
+        await this.messageService.deleteMessage({ messageId, userId });
+      })
     });
 
     return this.io;
