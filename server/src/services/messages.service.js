@@ -51,14 +51,11 @@ export class MessagesService {
   }
 
   async deleteMessage({ messageId, userId }) {
-    console.log(messageId, userId);
-
     const message = await Message.findOneAndDelete({
       _id: messageId,
       senderId: userId,
     });
 
-    console.log("message", message);
 
     if (!message) {
       throw new Error("Message not found");
